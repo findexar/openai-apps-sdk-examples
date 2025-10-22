@@ -1,0 +1,6 @@
+{
+  "routes": [
+    { "src": "^/mcp$", "dest": "/api/mcp" },
+    { "src": "^/assets/(.*)$", "dest": "/assets/$1" }
+  ]
+}
