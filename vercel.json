@@ -3,7 +3,8 @@
   "outputDirectory": "assets",
   "rewrites": [
     { "source": "/mcp", "destination": "/api/mcp" },
-    { "source": "/mcp/messages", "destination": "/api/mcp/messages" }
+    { "source": "/mcp/messages", "destination": "/api/mcp/messages" },
+    { "source": "/api/mcp/messages", "destination": "/api/mcp/messages" }
   ],
   "headers": [
     {
