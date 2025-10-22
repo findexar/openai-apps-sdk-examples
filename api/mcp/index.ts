@@ -94,29 +94,34 @@ function createPizzazServer(): Server {
 const sessions = new Map<string, { server: Server; transport: SSEServerTransport }>();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS / preflight
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'content-type, authorization');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
 
-  // Only GET here: establish the SSE stream
   if (req.method !== 'GET') return res.status(405).end('Method Not Allowed');
 
+  const transport = new SSEServerTransport('/api/mcp/messages', res); // keep your actual POST path here
+  const server = createPizzazServer();
+  const id = transport.sessionId;
+
+  sessions.set(id, { server, transport });
+
+  // ❌ don't call server.close() in onclose -> can recurse in 1.20.x
+  transport.onclose = () => {
+    // optional: log only
+    // console.log('SSE closed', id);
+  };
+  transport.onerror = (e) => console.error('SSE transport error', e);
+
   try {
-    // Note: messages will be POSTed to /api/mcp/messages
-    const transport = new SSEServerTransport('/api/mcp/messages', res);
-    const server = createPizzazServer();
-    const id = transport.sessionId;
-    sessions.set(id, { server, transport });
-
-    transport.onclose = async () => { sessions.delete(id); await server.close(); };
-    transport.onerror = (e) => console.error('SSE transport error', e);
-
-    await server.connect(transport);
+    await server.connect(transport); // resolves when SSE closes
   } catch (e) {
     console.error('Failed to start SSE session', e);
     if (!res.headersSent) res.status(500).end('Failed to establish SSE connection');
+  } finally {
+    sessions.delete(id);
+    try { await server.close(); } catch {}
   }
 }
 
