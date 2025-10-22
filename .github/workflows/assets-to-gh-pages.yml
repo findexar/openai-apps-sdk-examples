@@ -1,19 +1,43 @@
 name: Build assets and publish to gh-pages
+
 on:
   push:
     branches: [ main ]
+  workflow_dispatch: {}   # Enable "Run workflow" button
+
+permissions:
+  contents: write         # Needed to push to gh-pages
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: corepack enable
-      - run: corepack prepare pnpm@10.13.1 --activate
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm run build
+
+      - name: Enable Corepack + pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.13.1 --activate
+          pnpm --version
+
+      - name: Install deps
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build assets
+        run: pnpm run build
+
+      - name: Debug: list built files
+        run: |
+          echo "Top-level:"
+          ls -la
+          echo "assets/:"
+          ls -la assets || true
+
       - name: Publish assets to gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
