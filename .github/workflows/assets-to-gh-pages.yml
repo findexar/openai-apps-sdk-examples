@@ -1,0 +1,23 @@
+name: Build assets and publish to gh-pages
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: corepack enable
+      - run: corepack prepare pnpm@10.13.1 --activate
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm run build
+      - name: Publish assets to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: assets
+          force_orphan: true
