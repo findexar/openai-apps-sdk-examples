@@ -1,9 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "assets",
-  "functions": {
-    "api/*.ts": { "runtime": "nodejs20.x" }
-  },
   "rewrites": [
     { "source": "/mcp", "destination": "/api/mcp" }
   ],
